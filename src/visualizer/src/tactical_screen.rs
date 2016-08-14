@@ -299,6 +299,28 @@ fn get_marker<P: AsRef<Path>>(context: &mut Context, tex_path: P) -> Mesh {
     Mesh::new(context, &vertices, &indices, texture)
 }
 
+fn get_smoke_mesh(context: &mut Context) -> Mesh {
+    let mut vertices = Vec::new();
+    for dir in dirs() {
+        let vertex = geom::index_to_hex_vertex(dir.to_int());
+        let uv = vertex.v.truncate() / (geom::HEX_EX_RADIUS * 2.0)
+            + Vector2::from_value(0.5);
+        vertices.push(Vertex {
+            pos: vertex.v.into(),
+            uv: uv.into(),
+        });
+    }
+    let indices = [
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 5,
+        3, 4, 5,
+    ];
+    let texture_data = fs::load("smoke.png").into_inner();
+    let texture = load_texture(&mut context.factory, &texture_data);
+    Mesh::new(context, &vertices, &indices, texture)
+}
+
 fn load_object_mesh(context: &mut Context, name: &str) -> Mesh {
     let model = obj::Model::new(&format!("{}.obj", name));
     let (vertices, indices) = obj::build(&model);
@@ -361,6 +383,7 @@ struct MeshIdManager {
     water_mesh_id: MeshId,
     fow_mesh_id: MeshId,
     selection_marker_mesh_id: MeshId,
+    smoke_mesh_id: MeshId,
     sector_mesh_ids: HashMap<SectorId, MeshId>,
 }
 
@@ -385,6 +408,7 @@ impl MeshIdManager {
             sector_mesh_ids.insert(*id, mesh_id);
         }
         let selection_marker_mesh_id = meshes.add(get_selection_mesh(context));
+        let smoke_mesh_id = meshes.add(get_smoke_mesh(context));
         let big_building_mesh_w_id = meshes.add(
             load_object_mesh(context, "big_building_wire"));
         let building_mesh_w_id = meshes.add(
@@ -411,6 +435,7 @@ impl MeshIdManager {
             water_mesh_id: water_mesh_id,
             fow_mesh_id: fow_mesh_id,
             selection_marker_mesh_id: selection_marker_mesh_id,
+            smoke_mesh_id: smoke_mesh_id,
             sector_mesh_ids: sector_mesh_ids,
         }
     }
@@ -633,6 +658,7 @@ fn make_scene(state: &PartialState, mesh_ids: &MeshIdManager) -> Scene {
                         children: Vec::new(),
                     });
                 }
+                ObjectClass::Smoke => unimplemented!(),
             }
         }
     }
@@ -896,6 +922,31 @@ impl TacticalScreen {
         }
     }
 
+    fn create_smoke(&mut self, context: &Context) {
+        let pick_result = self.pick_tile(context);
+        if let Some(ref pos) = pick_result {
+            let scene = &mut self.player_info.get_mut(self.core.player_id()).scene;
+            let z_step = 0.35; // TODO
+            let mut node = SceneNode {
+                pos: geom::map_pos_to_world_pos(&pos),
+                rot: rad(0.0),
+                mesh_id: Some(self.mesh_ids.smoke_mesh_id),
+                color: [1.0, 1.0, 1.0, 0.8],
+                children: Vec::new(),
+            };
+            node.pos.v.z += z_step;
+            node.rot += rad(1.0);
+            scene.add_node(node.clone());
+            node.pos.v.z += z_step;
+            node.rot += rad(1.0);
+            scene.add_node(node.clone());
+            node.pos.v.z += z_step;
+            node.color[3] = 0.6;
+            node.rot += rad(1.0);
+            scene.add_node(node.clone());
+        }
+    }
+
     // TODO: add ability to select enemy units
     fn select_unit(&mut self, context: &mut Context, unit_id: &UnitId) {
         if self.selected_unit_id.is_some() {
@@ -1048,6 +1099,9 @@ impl TacticalScreen {
             VirtualKeyCode::U => {
                 let type_id = self.core.db().unit_type_id("soldier");
                 self.create_unit(context, type_id);
+            },
+            VirtualKeyCode::O => {
+                self.create_smoke(context);
             },
             VirtualKeyCode::T => {
                 let type_id = self.core.db().unit_type_id("medium_tank");
@@ -1441,6 +1495,12 @@ impl TacticalScreen {
                 self.core.do_command(Command::SetReactionFireMode {
                     unit_id: id,
                     mode: ReactionFireMode::HoldFire,
+                });
+            },
+            context_menu_popup::Command::Smoke{pos} => {
+                self.core.do_command(Command::Smoke {
+                    unit_id: selected_unit_id,
+                    pos: pos,
                 });
             },
         }

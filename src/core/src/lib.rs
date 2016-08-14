@@ -158,6 +158,7 @@ impl Sector {
 pub enum ObjectClass {
     Building,
     Road,
+    Smoke,
 }
 
 #[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Clone)]
@@ -209,6 +210,7 @@ pub enum Command {
     LoadUnit{transporter_id: UnitId, passenger_id: UnitId},
     UnloadUnit{transporter_id: UnitId, passenger_id: UnitId, pos: ExactPos},
     SetReactionFireMode{unit_id: UnitId, mode: ReactionFireMode},
+    Smoke{unit_id: UnitId, pos: MapPos},
 }
 
 #[derive(Clone, Debug)]
@@ -620,6 +622,9 @@ pub fn check_command<S: GameState>(
                 Ok(())
             }
         },
+        Command::Smoke{unit_id, pos} => {
+            unimplemented!();
+        },
     }
 }
 
@@ -772,7 +777,7 @@ pub fn get_free_slot_id<S: GameState>(
         for object in &objects_at {
             match object.class {
                 ObjectClass::Building => return None,
-                ObjectClass::Road => {},
+                ObjectClass::Smoke | ObjectClass::Road => {},
             }
         }
         if units_at.is_empty() {
@@ -1194,6 +1199,9 @@ impl Core {
                     unit_id: unit_id,
                     mode: mode,
                 });
+            },
+            Command::Smoke{unit_id, pos} => {
+                unimplemented!();
             },
         };
         let sector_events = check_sectors(&self.state);

@@ -8,6 +8,7 @@ use pipeline::{ColorFormat};
 
 pub type Texture = gfx::handle::ShaderResourceView<gfx_gl::Resources, [f32; 4]>;
 
+// TODO: Factory -> Context
 pub fn load_texture<R, F>(factory: &mut F, data: &[u8]) -> ShaderResourceView<R, [f32; 4]>
     where R: gfx::Resources, F: gfx::Factory<R>
 {

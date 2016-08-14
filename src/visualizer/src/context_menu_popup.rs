@@ -2,7 +2,7 @@ use std::sync::mpsc::{Sender};
 use std::collections::{HashMap};
 use glutin::{self, Event, MouseButton, VirtualKeyCode};
 use glutin::ElementState::{Released};
-use core::{UnitId, ExactPos};
+use core::{UnitId, MapPos, ExactPos};
 use core::partial_state::{PartialState};
 use core::game_state::{GameState};
 use core::db::{Db};
@@ -21,6 +21,7 @@ pub enum Command {
     UnloadUnit{pos: ExactPos},
     EnableReactionFire{id: UnitId},
     DisableReactionFire{id: UnitId},
+    Smoke{pos: MapPos},
 }
 
 #[derive(PartialEq, Debug, Clone)]
