@@ -283,7 +283,11 @@ pub enum CoreEvent {
         player_id: PlayerId,
         pos: MapPos,
         count: i32,
-    }
+    },
+    Smoke {
+        unit_id: UnitId,
+        pos: MapPos,
+    },
 }
 
 pub const MAX_GROUND_SLOTS_COUNT: usize = 3;
@@ -622,8 +626,9 @@ pub fn check_command<S: GameState>(
                 Ok(())
             }
         },
-        Command::Smoke{unit_id, pos} => {
-            unimplemented!();
+        Command::Smoke{..} => {
+            // TODO: проверить дальность и что там еще нет дыма, наверное
+            Ok(())
         },
     }
 }
@@ -1201,7 +1206,11 @@ impl Core {
                 });
             },
             Command::Smoke{unit_id, pos} => {
-                unimplemented!();
+                // TODO: реакционный огонь?
+                self.do_core_event(&CoreEvent::Smoke {
+                    unit_id: unit_id,
+                    pos: pos,
+                });
             },
         };
         let sector_events = check_sectors(&self.state);

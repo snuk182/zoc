@@ -181,6 +181,7 @@ impl Fow {
                 }
             },
             CoreEvent::SectorOwnerChanged{..} |
+            CoreEvent::Smoke{..} |
             CoreEvent::VictoryPoint{..} => {},
         }
     }

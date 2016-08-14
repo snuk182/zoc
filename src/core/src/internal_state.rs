@@ -371,6 +371,15 @@ impl GameStateMut for InternalState {
             CoreEvent::VictoryPoint{ref player_id, count, ..} => {
                 self.score.get_mut(player_id).unwrap().n += count;
             },
+            CoreEvent::Smoke{pos, ..} => {
+                self.add_object(Object {
+                    class: ObjectClass::Smoke,
+                    pos: ExactPos {
+                        map_pos: pos,
+                        slot_id: SlotId::WholeTile,
+                    },
+                });
+            },
         }
     }
 }

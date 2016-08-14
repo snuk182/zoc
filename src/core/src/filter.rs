@@ -195,6 +195,7 @@ pub fn filter_events(
                 events.push(event.clone());
             }
         },
+        CoreEvent::Smoke{..} |
         CoreEvent::VictoryPoint{..} |
         CoreEvent::SectorOwnerChanged{..} => {
             events.push(event.clone());

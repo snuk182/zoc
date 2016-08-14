@@ -68,6 +68,7 @@ use event_visualizer::{
     EventSetReactionFireModeVisualizer,
     EventSectorOwnerChangedVisualizer,
     EventVictoryPointVisualizer,
+    EventSmokeVisualizer,
 };
 use unit_type_visual_info::{
     UnitTypeVisualInfo,
@@ -1345,6 +1346,14 @@ impl TacticalScreen {
                 EventVictoryPointVisualizer::new(
                     pos,
                     count,
+                    &mut self.map_text_manager,
+                )
+            }
+            CoreEvent::Smoke{pos, unit_id} => {
+                EventSmokeVisualizer::new(
+                    scene,
+                    state,
+                    pos,
                     &mut self.map_text_manager,
                 )
             }

@@ -570,3 +570,27 @@ impl EventVisualizer for EventVictoryPointVisualizer {
 
     fn end(&mut self, _: &mut Scene, _: &PartialState) {}
 }
+
+pub struct EventSmokeVisualizer;
+
+impl EventSmokeVisualizer {
+    pub fn new(
+        scene: &mut Scene,
+        state: &PartialState,
+        pos: MapPos,
+        map_text: &mut MapTextManager,
+    ) -> Box<EventVisualizer> {
+        map_text.add_text(&pos, "Smoke");
+        Box::new(EventSmokeVisualizer)
+    }
+}
+
+impl EventVisualizer for EventSmokeVisualizer {
+    fn is_finished(&self) -> bool {
+        true
+    }
+
+    fn draw(&mut self, _: &mut Scene, _: &Time) {}
+
+    fn end(&mut self, _: &mut Scene, _: &PartialState) {}
+}
