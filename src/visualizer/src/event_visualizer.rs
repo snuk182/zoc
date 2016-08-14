@@ -578,9 +578,28 @@ impl EventSmokeVisualizer {
         scene: &mut Scene,
         state: &PartialState,
         pos: MapPos,
+        smoke_mesh_id: MeshId,
         map_text: &mut MapTextManager,
     ) -> Box<EventVisualizer> {
         map_text.add_text(&pos, "Smoke");
+        let z_step = 0.35; // TODO
+        let mut node = SceneNode {
+            pos: geom::map_pos_to_world_pos(&pos),
+            rot: rad(0.0),
+            mesh_id: Some(smoke_mesh_id),
+            color: [1.0, 1.0, 1.0, 0.8],
+            children: Vec::new(),
+        };
+        node.pos.v.z += z_step;
+        node.rot += rad(1.0);
+        scene.add_node(node.clone());
+        node.pos.v.z += z_step;
+        node.rot += rad(1.0);
+        scene.add_node(node.clone());
+        node.pos.v.z += z_step;
+        node.color[3] = 0.6;
+        node.rot += rad(1.0);
+        scene.add_node(node.clone());
         Box::new(EventSmokeVisualizer)
     }
 }

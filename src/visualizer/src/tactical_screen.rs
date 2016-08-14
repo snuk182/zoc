@@ -924,31 +924,6 @@ impl TacticalScreen {
         }
     }
 
-    fn create_smoke(&mut self, context: &Context) {
-        let pick_result = self.pick_tile(context);
-        if let Some(ref pos) = pick_result {
-            let scene = &mut self.player_info.get_mut(self.core.player_id()).scene;
-            let z_step = 0.35; // TODO
-            let mut node = SceneNode {
-                pos: geom::map_pos_to_world_pos(&pos),
-                rot: rad(0.0),
-                mesh_id: Some(self.mesh_ids.smoke_mesh_id),
-                color: [1.0, 1.0, 1.0, 0.8],
-                children: Vec::new(),
-            };
-            node.pos.v.z += z_step;
-            node.rot += rad(1.0);
-            scene.add_node(node.clone());
-            node.pos.v.z += z_step;
-            node.rot += rad(1.0);
-            scene.add_node(node.clone());
-            node.pos.v.z += z_step;
-            node.color[3] = 0.6;
-            node.rot += rad(1.0);
-            scene.add_node(node.clone());
-        }
-    }
-
     // TODO: add ability to select enemy units
     fn select_unit(&mut self, context: &mut Context, unit_id: &UnitId) {
         if self.selected_unit_id.is_some() {
@@ -1101,9 +1076,6 @@ impl TacticalScreen {
             VirtualKeyCode::U => {
                 let type_id = self.core.db().unit_type_id("soldier");
                 self.create_unit(context, type_id);
-            },
-            VirtualKeyCode::O => {
-                self.create_smoke(context);
             },
             VirtualKeyCode::T => {
                 let type_id = self.core.db().unit_type_id("medium_tank");
@@ -1354,6 +1326,7 @@ impl TacticalScreen {
                     scene,
                     state,
                     pos,
+                    self.mesh_ids.smoke_mesh_id,
                     &mut self.map_text_manager,
                 )
             }
