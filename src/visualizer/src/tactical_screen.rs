@@ -874,6 +874,7 @@ impl TacticalScreen {
                     }
                 }
             }
+            options.smoke_pos = Some(*pos);
             if let Some(pos) = self.can_unload_unit(&selected_unit_id, pos) {
                 options.unload_pos = Some(pos);
             }
