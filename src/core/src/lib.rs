@@ -804,7 +804,12 @@ pub fn get_free_slot_id<S: GameState>(
                 SlotId::Id(slot_id) => {
                     slots[slot_id as usize] = true;
                 },
-                SlotId::WholeTile => return None,
+                SlotId::WholeTile => {
+                    match object.class {
+                        ObjectClass::Building => return None,
+                        ObjectClass::Smoke | ObjectClass::Road => {},
+                    }
+                }
                 SlotId::TwoTiles(_) => {},
             }
         }
