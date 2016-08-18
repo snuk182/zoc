@@ -9,10 +9,6 @@ license = "MIT OR Apache-2.0"
 keywords = ["opengl", "3D", "game", "gfx"]
 repository = "https://github.com/ozkriff/zoc"
 
-[profile.dev]
-opt-level = 2
-debug-assertions = false
-
 [[bin]]
 name = "zoc"
 
