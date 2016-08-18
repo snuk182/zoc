@@ -1321,10 +1321,9 @@ impl TacticalScreen {
                     &mut self.map_text_manager,
                 )
             }
-            CoreEvent::Smoke{pos, unit_id} => {
+            CoreEvent::Smoke{pos, ..} => {
                 EventSmokeVisualizer::new(
                     scene,
-                    state,
                     pos,
                     self.mesh_ids.smoke_mesh_id,
                     &mut self.map_text_manager,
