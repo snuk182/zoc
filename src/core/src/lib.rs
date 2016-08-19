@@ -27,7 +27,7 @@ use misc::{clamp};
 use internal_state::{InternalState};
 use game_state::{GameState, GameStateMut};
 use partial_state::{PartialState};
-use map::{Map, Terrain, distance};
+use map::{Terrain, distance};
 use pathfinder::{path_cost, tile_cost};
 use unit::{Unit, UnitType, UnitTypeId, UnitClass};
 use db::{Db};
@@ -511,9 +511,13 @@ fn check_attack<S: GameState>(
     if distance(&attacker.pos.map_pos, &defender.pos.map_pos) < weapon_type.min_distance {
         return Err(CommandError::TooClose);
     }
-    if !weapon_type.is_inderect
-        && !los(state.map(), attacker_type, &attacker.pos.map_pos, &defender.pos.map_pos)
-    {
+    let is_los_ok = los(
+        state,
+        attacker_type,
+        &attacker.pos.map_pos,
+        &defender.pos.map_pos,
+    );
+    if !weapon_type.is_inderect && !is_los_ok {
         return Err(CommandError::NoLos);
     }
     Ok(())
@@ -722,8 +726,8 @@ fn get_player_info_lists(map_size: &Size2) -> HashMap<PlayerId, PlayerInfo> {
     map
 }
 
-pub fn los(
-    map: &Map<Terrain>,
+fn los<S: GameState>(
+    state: &S,
     unit_type: &UnitType,
     from: &MapPos,
     to: &MapPos,
@@ -731,7 +735,7 @@ pub fn los(
     // TODO: profile and optimize!
     let mut v = false;
     let range = unit_type.los_range;
-    fov(map, from, range, &mut |p| if *p == *to { v = true });
+    fov(state, from, range, &mut |p| if *p == *to { v = true });
     v
 }
 

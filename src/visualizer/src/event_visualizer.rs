@@ -580,6 +580,10 @@ impl EventSmokeVisualizer {
         smoke_mesh_id: MeshId,
         map_text: &mut MapTextManager,
     ) -> Box<EventVisualizer> {
+        // TODO: не просто сразу создавать задымление,
+        // а показать анимацию полета снаряда
+        // и после его приземления показать как дым поднимается из-под земли.
+        // ну или из альфы его вывести, тоже пойдет
         map_text.add_text(&pos, "Smoke");
         let z_step = 0.35; // TODO
         let mut node = SceneNode {
