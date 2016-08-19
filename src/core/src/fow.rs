@@ -169,10 +169,6 @@ impl Fow {
                     }
                 }
             },
-            CoreEvent::ShowUnit{..} |
-            CoreEvent::HideUnit{..} |
-            CoreEvent::LoadUnit{..} |
-            CoreEvent::SetReactionFireMode{..} => {},
             CoreEvent::UnloadUnit{ref unit_info, ..} => {
                 if self.player_id == unit_info.player_id {
                     let unit = state.unit(&unit_info.unit_id);
@@ -180,6 +176,10 @@ impl Fow {
                     fov_unit_in_pos(db, state.map(), &mut self.map, unit, pos);
                 }
             },
+            CoreEvent::ShowUnit{..} |
+            CoreEvent::HideUnit{..} |
+            CoreEvent::LoadUnit{..} |
+            CoreEvent::SetReactionFireMode{..} |
             CoreEvent::SectorOwnerChanged{..} |
             CoreEvent::Smoke{..} |
             CoreEvent::VictoryPoint{..} => {},
