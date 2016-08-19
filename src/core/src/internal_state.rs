@@ -149,6 +149,7 @@ impl InternalState {
                     map_pos: from.clone(),
                     slot_id: SlotId::TwoTiles(dir),
                 },
+                timer: None,
             };
             self.add_object(object);
         }
@@ -167,6 +168,7 @@ impl InternalState {
                 map_pos: pos.clone(),
                 slot_id: SlotId::WholeTile,
             },
+            timer: None,
         };
         self.add_object(object);
     }
@@ -179,6 +181,7 @@ impl InternalState {
             let object = Object {
                 class: ObjectClass::Building,
                 pos: obj_pos,
+                timer: None,
             };
             self.add_object(object);
         }
@@ -378,6 +381,7 @@ impl GameStateMut for InternalState {
                         map_pos: pos,
                         slot_id: SlotId::WholeTile,
                     },
+                    timer: Some(5),
                 });
             },
         }

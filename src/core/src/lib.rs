@@ -161,15 +161,16 @@ pub enum ObjectClass {
     Smoke,
 }
 
-#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct ObjectId {
     pub id: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Object {
     pub pos: ExactPos,
     pub class: ObjectClass,
+    pub timer: Option<i32>,
 }
 
 #[derive(PartialEq, Clone, Debug)]
