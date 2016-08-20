@@ -286,8 +286,12 @@ pub enum CoreEvent {
         count: i32,
     },
     Smoke {
+        id: ObjectId,
         unit_id: UnitId,
         pos: MapPos,
+    },
+    RemoveSmoke {
+        id: ObjectId,
     },
 }
 
@@ -904,9 +908,18 @@ impl Core {
     }
 
     fn get_new_unit_id(&mut self) -> UnitId {
-        let new_unit_id = self.next_unit_id.clone();
+        let new_unit_id = self.next_unit_id;
         self.next_unit_id.id += 1;
         new_unit_id
+    }
+
+    fn get_new_object_id(&mut self) -> ObjectId {
+        let mut next_id = match self.state.objects().keys().max() {
+            Some(id) => *id,
+            None => ObjectId{id: 0},
+        };
+        next_id.id += 1;
+        next_id
     }
 
     fn add_unit(&mut self, pos: &MapPos, type_id: &UnitTypeId, player_id: &PlayerId) {
@@ -1103,20 +1116,31 @@ impl Core {
             Command::EndTurn => {
                 let old_id = self.current_player_id.clone();
                 let new_id = self.next_player_id(&old_id);
-                let mut vp_events = Vec::new();
+                // TODO: эта ветка уже достаточно раздулась,
+                // пора выносить в отдельную функцию
+                let mut end_turn_events = Vec::new();
                 for (_, sector) in self.state.sectors() {
                     if let Some(player_id) = sector.owner_id.clone() {
                         if player_id != new_id {
                             continue;
                         }
-                        vp_events.push(CoreEvent::VictoryPoint {
+                        end_turn_events.push(CoreEvent::VictoryPoint {
                             player_id: player_id.clone(),
                             pos: sector.center(),
                             count: 1,
                         });
                     }
                 }
-                for event in vp_events {
+                for (object_id, object) in self.state.objects() {
+                    if let Some(timer) = object.timer {
+                        if timer == 0 {
+                            end_turn_events.push(CoreEvent::RemoveSmoke {
+                                id: *object_id,
+                            });
+                        }
+                    }
+                }
+                for event in end_turn_events {
                     self.do_core_event(&event);
                 }
                 self.do_core_event(&CoreEvent::EndTurn {
@@ -1216,8 +1240,12 @@ impl Core {
                 });
             },
             Command::Smoke{unit_id, pos} => {
+                // TODO: наверное, дым должен появляться на нескольких соседних клетках
+                // зафигачить несколько событий
                 // TODO: реакционный огонь?
+                let id = self.get_new_object_id();
                 self.do_core_event(&CoreEvent::Smoke {
+                    id: id,
                     unit_id: unit_id,
                     pos: pos,
                 });

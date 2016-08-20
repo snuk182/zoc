@@ -69,6 +69,7 @@ use event_visualizer::{
     EventSectorOwnerChangedVisualizer,
     EventVictoryPointVisualizer,
     EventSmokeVisualizer,
+    EventRemoveSmokeVisualizer,
 };
 use unit_type_visual_info::{
     UnitTypeVisualInfo,
@@ -1321,11 +1322,21 @@ impl TacticalScreen {
                     &mut self.map_text_manager,
                 )
             }
-            CoreEvent::Smoke{pos, ..} => {
+            CoreEvent::Smoke{pos, unit_id, id} => {
                 EventSmokeVisualizer::new(
                     scene,
                     pos,
+                    unit_id,
+                    id,
                     self.mesh_ids.smoke_mesh_id,
+                    &mut self.map_text_manager,
+                )
+            }
+            CoreEvent::RemoveSmoke{id} => {
+                EventRemoveSmokeVisualizer::new(
+                    scene,
+                    state,
+                    id,
                     &mut self.map_text_manager,
                 )
             }

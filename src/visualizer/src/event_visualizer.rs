@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use cgmath::{Vector3, rad};
 use core::partial_state::{PartialState};
 use core::game_state::{GameState};
-use core::{self, UnitInfo, AttackInfo, ReactionFireMode, UnitId, ExactPos, PlayerId, SectorId, MapPos};
+use core::{self, UnitInfo, AttackInfo, ReactionFireMode, UnitId, ExactPos, PlayerId, SectorId, MapPos, ObjectId};
 use core::unit::{UnitTypeId};
 use core::db::{Db};
 use types::{WorldPos, Time};
@@ -577,6 +577,8 @@ impl EventSmokeVisualizer {
     pub fn new(
         scene: &mut Scene,
         pos: MapPos,
+        _: UnitId,
+        object_id: ObjectId,
         smoke_mesh_id: MeshId,
         map_text: &mut MapTextManager,
     ) -> Box<EventVisualizer> {
@@ -595,16 +597,42 @@ impl EventSmokeVisualizer {
         };
         node.pos.v.z += z_step * 1.5;
         node.rot += rad(1.0);
-        scene.add_node(node.clone());
+        /*let node_id =*/ scene.add_object(object_id, node.clone());
         node.pos.v.z += z_step;
         node.color[3] = 0.6;
         node.rot += rad(1.0);
-        scene.add_node(node.clone());
+        scene.add_object(object_id, node);
         Box::new(EventSmokeVisualizer)
     }
 }
 
 impl EventVisualizer for EventSmokeVisualizer {
+    fn is_finished(&self) -> bool {
+        true
+    }
+
+    fn draw(&mut self, _: &mut Scene, _: &Time) {}
+
+    fn end(&mut self, _: &mut Scene, _: &PartialState) {}
+}
+
+pub struct EventRemoveSmokeVisualizer;
+
+impl EventRemoveSmokeVisualizer {
+    pub fn new(
+        scene: &mut Scene,
+        state: &PartialState,
+        object_id: ObjectId,
+        map_text: &mut MapTextManager,
+    ) -> Box<EventVisualizer> {
+        let pos = &state.objects()[&object_id].pos.map_pos;
+        map_text.add_text(pos, "Smoke disperced");
+        scene.remove_object(object_id);
+        Box::new(EventSmokeVisualizer)
+    }
+}
+
+impl EventVisualizer for EventRemoveSmokeVisualizer {
     fn is_finished(&self) -> bool {
         true
     }

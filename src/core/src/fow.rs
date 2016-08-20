@@ -194,6 +194,7 @@ impl Fow {
             CoreEvent::SetReactionFireMode{..} |
             CoreEvent::SectorOwnerChanged{..} |
             CoreEvent::Smoke{..} |
+            CoreEvent::RemoveSmoke{..} |
             CoreEvent::VictoryPoint{..} => {},
         }
     }

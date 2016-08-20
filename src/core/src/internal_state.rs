@@ -155,6 +155,10 @@ impl InternalState {
         }
     }
 
+    // TODO
+    // это проблемка. раз я дым создаю через события, то здания тоже надо
+    // а то тут жопа с индексами получается
+    // да и дороги так же...
     fn add_object(&mut self, object: Object) {
         let id = ObjectId{id: self.objects.len() as i32 + 1};
         self.objects.insert(id, object);
@@ -290,11 +294,19 @@ impl GameStateMut for InternalState {
             CoreEvent::EndTurn{ref new_id, ref old_id} => {
                 self.refresh_units(db, new_id);
                 self.convert_ap(db, old_id);
+                for (_, object) in &mut self.objects {
+                    if let Some(ref mut timer) = object.timer {
+                        *timer -= 1;
+                        assert!(*timer >= 0);
+                    }
+                }
             },
             CoreEvent::CreateUnit{ref unit_info} => {
                 self.add_unit(db, unit_info, InfoLevel::Full);
             },
             CoreEvent::AttackUnit{ref attack_info} => {
+                // TODO: move 'defender' section to the bottom of the arm
+                // and remove braces
                 {
                     let unit = self.units.get_mut(&attack_info.defender_id)
                         .expect("Can`t find defender");
@@ -374,8 +386,9 @@ impl GameStateMut for InternalState {
             CoreEvent::VictoryPoint{ref player_id, count, ..} => {
                 self.score.get_mut(player_id).unwrap().n += count;
             },
-            CoreEvent::Smoke{pos, ..} => {
-                self.add_object(Object {
+            CoreEvent::Smoke{pos, id, ..} => {
+                // TODO: экхем, дым играет не по правилам!
+                self.objects.insert(id, Object {
                     class: ObjectClass::Smoke,
                     pos: ExactPos {
                         map_pos: pos,
@@ -383,6 +396,9 @@ impl GameStateMut for InternalState {
                     },
                     timer: Some(5),
                 });
+            },
+            CoreEvent::RemoveSmoke{id} => {
+                self.objects.remove(&id);
             },
         }
     }
