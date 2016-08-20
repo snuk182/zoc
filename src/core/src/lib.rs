@@ -1240,8 +1240,6 @@ impl Core {
                 });
             },
             Command::Smoke{unit_id, pos} => {
-                // TODO: наверное, дым должен появляться на нескольких соседних клетках
-                // зафигачить несколько событий
                 // TODO: реакционный огонь?
                 let id = self.get_new_object_id();
                 self.do_core_event(&CoreEvent::Smoke {
@@ -1249,6 +1247,21 @@ impl Core {
                     unit_id: unit_id,
                     pos: pos,
                 });
+                let mut dir = Dir::from_int(thread_rng().gen_range(0, 5));
+                // TODO: количество дополнительного дыма определять по типу стреляющего (от 0 до 3)
+                for _ in 0..3 {
+                    let mut dir_index = dir.to_int() + thread_rng().gen_range(1, 3);
+                    if dir_index > 5 {
+                        dir_index -= 6;
+                    }
+                    dir = Dir::from_int(dir_index);
+                    let id2 = self.get_new_object_id();
+                    self.do_core_event(&CoreEvent::Smoke {
+                        id: id2,
+                        unit_id: unit_id,
+                        pos: Dir::get_neighbour_pos(&pos, &dir),
+                    });
+                }
             },
         };
         let sector_events = check_sectors(&self.state);
