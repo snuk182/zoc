@@ -571,7 +571,13 @@ impl EventVisualizer for EventVictoryPointVisualizer {
     fn end(&mut self, _: &mut Scene, _: &PartialState) {}
 }
 
-pub struct EventSmokeVisualizer;
+const SMOKE_ALPHA: f32 = 0.7;
+
+pub struct EventSmokeVisualizer {
+    duration: Time,
+    time: Time,
+    object_id: ObjectId,
+}
 
 impl EventSmokeVisualizer {
     pub fn new(
@@ -584,60 +590,88 @@ impl EventSmokeVisualizer {
     ) -> Box<EventVisualizer> {
         // TODO: не просто сразу создавать задымление,
         // а показать анимацию полета снаряда
-        // и после его приземления показать как дым поднимается из-под земли.
-        // ну или из альфы его вывести, тоже пойдет
         map_text.add_text(&pos, "Smoke");
-        let z_step = 0.35; // TODO
+        let z_step = 0.45; // TODO
         let mut node = SceneNode {
             pos: geom::map_pos_to_world_pos(&pos),
             rot: rad(0.0),
             mesh_id: Some(smoke_mesh_id),
-            color: [1.0, 1.0, 1.0, 0.9],
+            color: [1.0, 1.0, 1.0, 0.0],
             children: Vec::new(),
         };
-        node.pos.v.z += z_step * 1.5;
-        node.rot += rad(1.0);
-        /*let node_id =*/ scene.add_object(object_id, node.clone());
         node.pos.v.z += z_step;
-        node.color[3] = 0.6;
-        node.rot += rad(1.0);
+        node.rot += rad(thread_rng().gen_range(0.0, PI * 2.0));
+        scene.add_object(object_id, node.clone());
+        node.pos.v.z += z_step;
+        node.rot += rad(thread_rng().gen_range(0.0, PI * 2.0));
         scene.add_object(object_id, node);
-        Box::new(EventSmokeVisualizer)
+        let limit_seconds = 1.0;
+        let limit = limit_seconds * 1000000000.0;
+        Box::new(EventSmokeVisualizer {
+            time: Time{n: 0},
+            duration: Time{n: limit as u64},
+            object_id: object_id,
+        })
     }
 }
 
 impl EventVisualizer for EventSmokeVisualizer {
     fn is_finished(&self) -> bool {
-        true
+        self.time.n as f32 / self.duration.n as f32 > SMOKE_ALPHA
     }
 
-    fn draw(&mut self, _: &mut Scene, _: &Time) {}
+    fn draw(&mut self, scene: &mut Scene, dtime: &Time) {
+        self.time.n += dtime.n;
+        let node_ids = scene.object_id_to_node_id(self.object_id).clone();
+        for node_id in node_ids {
+            let node = scene.node_mut(&node_id);
+            node.color[3] = self.time.n as f32 / self.duration.n as f32;
+        }
+    }
 
     fn end(&mut self, _: &mut Scene, _: &PartialState) {}
 }
 
-pub struct EventRemoveSmokeVisualizer;
+pub struct EventRemoveSmokeVisualizer {
+    duration: Time,
+    time: Time,
+    object_id: ObjectId,
+}
 
 impl EventRemoveSmokeVisualizer {
     pub fn new(
-        scene: &mut Scene,
+        _: &mut Scene,
         state: &PartialState,
         object_id: ObjectId,
         map_text: &mut MapTextManager,
     ) -> Box<EventVisualizer> {
         let pos = &state.objects()[&object_id].pos.map_pos;
-        map_text.add_text(pos, "Smoke disperced");
-        scene.remove_object(object_id);
-        Box::new(EventSmokeVisualizer)
+        map_text.add_text(pos, "Smoke cleared");
+        let limit_seconds = 1.0;
+        let limit = limit_seconds * 1000000000.0;
+        Box::new(EventRemoveSmokeVisualizer {
+            time: Time{n: 0},
+            duration: Time{n: limit as u64},
+            object_id: object_id,
+        })
     }
 }
 
 impl EventVisualizer for EventRemoveSmokeVisualizer {
     fn is_finished(&self) -> bool {
-        true
+        self.time.n as f32 / self.duration.n as f32 > SMOKE_ALPHA
     }
 
-    fn draw(&mut self, _: &mut Scene, _: &Time) {}
+    fn draw(&mut self, scene: &mut Scene, dtime: &Time) {
+        self.time.n += dtime.n;
+        let node_ids = scene.object_id_to_node_id(self.object_id).clone();
+        for node_id in node_ids {
+            let node = scene.node_mut(&node_id);
+            node.color[3] = SMOKE_ALPHA - self.time.n as f32 / self.duration.n as f32;
+        }
+    }
 
-    fn end(&mut self, _: &mut Scene, _: &PartialState) {}
+    fn end(&mut self, scene: &mut Scene, _: &PartialState) {
+        scene.remove_object(self.object_id);
+    }
 }
